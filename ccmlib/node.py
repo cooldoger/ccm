@@ -1722,6 +1722,13 @@ class Node(object):
                             common.replace_in_file(f, '-Djava.net.preferIPv4Stack=true', '')
                     break
 
+        # add rocksandra config if it's not configured
+        with open(conf_file, "r+") as fp:
+            if "cassandra.rocksdb.dir" not in fp.read():
+                fp.write("JVM_OPTS=\"$JVM_OPTS -Dcassandra.rocksdb.dir=" + os.path.join(self.get_path(), "rocksdb") + '"\n')
+                fp.write("JVM_OPTS=\"$JVM_OPTS -Dcassandra.rocksdb.stream.dir=" + os.path.join(self.get_path(), "rocksdbstream") + '"\n')
+
+
     def __update_status(self):
         if self.pid is None:
             if self.status == Status.UP or self.status == Status.DECOMMISSIONED:
@@ -1781,7 +1788,7 @@ class Node(object):
 
     def _get_directories(self):
         dirs = []
-        for i in ['commitlogs', 'saved_caches', 'logs', 'conf', 'bin', 'hints']:
+        for i in ['commitlogs', 'saved_caches', 'logs', 'conf', 'bin', 'hints', 'rocksdb', 'rocksdbstream']:
             dirs.append(os.path.join(self.get_path(), i))
         for x in xrange(0, self.cluster.data_dir_count):
             dirs.append(os.path.join(self.get_path(), 'data{0}'.format(x)))
